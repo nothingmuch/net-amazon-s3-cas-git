@@ -1,0 +1,6 @@
+#!/usr/bin/env perl
+
+use Net::Amazon::S3::CAS::Git::Cmd;
+
+Net::Amazon::S3::CAS::Git::Cmd->new_with_options->run;
+
