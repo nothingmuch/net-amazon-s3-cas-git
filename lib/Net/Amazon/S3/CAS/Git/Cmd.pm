@@ -139,6 +139,24 @@ has print_rewritemap => (
     documentation => "Whether an Apache compatible RewriteMap is written to standard output",
 );
 
+has n_proc => (
+    traits        => [qw(Getopt)],
+    isa           => "Maybe[Int]",
+    is            => "ro",
+    lazy_build    => 1,
+    documentation => "The number of concurrent workers to use (defaults to 5 if Parallel::ForkManager is available)",
+);
+
+sub _build_n_proc {
+    my $self = shift;
+
+    if ( eval { require Parallel::ForkManger; 1 } ) {
+        return 5;
+    } else {
+        return 1;
+    }
+}
+
 has s3 => (
     traits     => [qw(NoGetopt)],
     isa        => "Net::Amazon::S3",
@@ -194,7 +212,8 @@ sub _build_cas {
         delimiter     => $self->delimiter,
         prefix        => $self->prefix,
         collection    => $self->collection,
-        ( $self->vhost  ? ( base_uri      => $self->base_uri     ) : () ),
+        ( $self->vhost      ? ( base_uri     => $self->base_uri     ) : () ),
+        ( $self->n_proc > 1 ? ( fork_manager => $self->fork_manager ) : () ),
     );
 }
 
@@ -206,6 +225,13 @@ sub base_uri {
     $vhost = "http://$vhost" unless $vhost =~ /^http:/;
 
     URI->new($vhost);
+}
+
+sub fork_manager {
+    my $self = shift;
+
+    require Parallel::ForkManager;
+    Parallel::ForkManager->new($self->n_proc);
 }
 
 sub run {
