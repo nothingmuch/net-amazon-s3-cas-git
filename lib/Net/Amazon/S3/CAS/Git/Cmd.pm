@@ -27,9 +27,11 @@ has filter => (
     traits        => [qw(Getopt)],
     isa           => ArrayRef [Str],
     is            => "ro",
-    default       => sub { [] },
+    lazy_build => 1,
     documentation => "additional filters to pass to git-ls-tree",
 );
+
+sub _build_filter { shift->extra_argv }
 
 has aws_access_key_id => (
     traits        => [qw(Getopt)],
@@ -122,6 +124,21 @@ has delimiter => (
     documentation => "The delimiter to use when mangling keys (defaults to .)",
 );
 
+has vhost => (
+    traits        => [qw(Getopt)],
+    isa           => "Bool",
+    is            => "ro",
+    documentation => 'use the bucket name as a vhost (instead of http://s3.amazonaws.com/$bucket)',
+);
+
+has print_rewritemap => (
+    traits        => [qw(Getopt)],
+    isa           => "Bool",
+    is            => "ro",
+    default       => 1,
+    documentation => "Whether an Apache compatible RewriteMap is written to standard output",
+);
+
 has s3 => (
     traits     => [qw(NoGetopt)],
     isa        => "Net::Amazon::S3",
@@ -177,13 +194,33 @@ sub _build_cas {
         delimiter     => $self->delimiter,
         prefix        => $self->prefix,
         collection    => $self->collection,
+        ( $self->vhost  ? ( base_uri      => $self->base_uri     ) : () ),
     );
+}
+
+sub base_uri {
+    my $self = shift;
+
+    my $vhost = $self->bucket;
+
+    $vhost = "http://$vhost" unless $vhost =~ /^http:/;
+
+    URI->new($vhost);
 }
 
 sub run {
     my $self = shift;
 
-    $self->cas->sync;
+    my $uris = $self->cas->sync;
+
+    if ( $self->print_rewritemap ) {
+        my @keys = sort keys %$uris;
+        local $, = " ";
+        local $\ = "\n";
+        foreach my $key (@keys) {
+            print $key, $uris->{$key};
+        }
+    }
 }
 
 __PACKAGE__->meta->make_immutable;
