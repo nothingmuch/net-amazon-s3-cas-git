@@ -73,7 +73,7 @@ has prefix => (
     traits        => [qw(Getopt)],
     isa           => "Str",
     is            => "ro",
-    default       => "",
+    predicate     => "has_prefix",
     documentation => "The prefix in the bucket to use (defaults to the emtpy string)",
 );
 
@@ -122,8 +122,15 @@ has delimiter => (
     traits        => [qw(Getopt)],
     isa           => "Str",
     is            => "ro",
-    default       => ".",
-    documentation => "The delimiter to use when mangling keys (defaults to .)",
+    documentation => "The delimiter to use when mangling keys (defaults to . or / depending on hash_as_dir)",
+    predicate     => "has_delimiter",
+);
+
+has hash_as_dir => (
+    traits        => [qw(Getopt)],
+    isa           => "Bool",
+    is            => "ro",
+    documentation => "Use the hash as if it were a directory name (defaults to false).",
 );
 
 has vhost => (
@@ -147,6 +154,13 @@ has n_proc => (
     is            => "ro",
     lazy_build    => 1,
     documentation => "The number of concurrent workers to use (defaults to 5 if Parallel::ForkManager is available)",
+);
+
+has verbose => (
+    traits        => [qw(Getopt)],
+    isa           => "Bool",
+    is            => "ro",
+    documentation => "Prints information about files to STDERR as they are being processed",
 );
 
 sub _build_n_proc {
@@ -206,16 +220,20 @@ sub _build_cas {
     my $self = shift;
 
     Net::Amazon::S3::CAS->new(
-        bucket        => $self->s3->bucket( $self->bucket ),
-        prune         => $self->prune,
-        public        => $self->public,
-        include_name  => $self->include_name,
-        only_basename => $self->only_basename,
-        delimiter     => $self->delimiter,
-        prefix        => $self->prefix,
-        collection    => $self->collection,
+        bucket     => $self->s3->bucket( $self->bucket ),
+        collection => $self->collection,
         ( $self->vhost      ? ( base_uri     => $self->base_uri     ) : () ),
         ( $self->n_proc > 1 ? ( fork_manager => $self->fork_manager ) : () ),
+        map { ( !$self->can("has_$_") || $self->${\"has_$_"} ) ? ( $_ => $self->$_ ) : () } qw(
+            verbose
+            prune
+            public
+            include_name
+            only_basename
+            delimiter
+            hash_as_dir
+            prefix
+        ),
     );
 }
 
