@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use autodie;
 
-use Test::More 'no_plan';
+use Test::More;
 use Test::TempDir qw(scratch);
 
 use Git;
@@ -19,9 +19,9 @@ $s->touch('bar/a space', qw(oh noes));
 chdir $s->base;
 
 # FIXME hate Git.pm
-print STDERR qx(git init);
-print STDERR qx(git add .);
-print STDERR qx(git commit -am init);
+qx(git init);
+qx(git add .);
+qx(git commit -am init);
 
 my $repo = Git->repository;
 
@@ -36,3 +36,4 @@ is( $entries[0]->blob->name, "bar/a space", "name" );
 
 is( $entries[1]->blob->slurp, "foo\n", "second entry contents" );
 
+done_testing;
