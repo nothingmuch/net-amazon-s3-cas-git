@@ -92,3 +92,61 @@ __PACKAGE__->meta->make_immutable;
 __PACKAGE__
 
 __END__
+
+=pod
+
+=head1 NAME
+
+Net::Amazon::S3::CAS::Git::Directory - L<Net::Amazon::S3::CAS::Collection> for
+Git treeish objects.
+
+=head1 SYNOPSIS
+
+    my $dir = Net::Amazon::S3::CAS::Collection->new(
+
+        # anything that resolves into a commit or tree object
+        treeish => $ref_or_whatever,
+
+        repo => Git->repository(...),
+
+        filter => \@args_to_ls_tree
+    );
+
+    $dir->entries;
+
+=head1 DESCRIPTION
+
+This class implements the L<Net::Amazon::S3::CAS::Collection> API, where the
+source of the blobs is a Git tree object.
+
+=head1 ATTRIBUTES
+
+=over 4
+
+=item treeish
+
+A ref, tree sha1, commit sha1 or other rev specification. See Git's
+C<rev-parse> manpage for more details on what this can be.
+
+=item filter
+
+An array ref of arguments to pass to C<git ls-tree>.
+
+=item tempfile_threshold
+
+Blobs larger than this value will return true from
+L<Net::Amazon::S3::CAS::BLOB/prefer_handle>.
+
+Defaults to 4096.
+
+=item tempdir
+
+The directory to use for temporary files.
+
+Defaults to L<File::Temp::tempdir()>.
+
+=item repo
+
+The L<Git> object to use.
+
+=back

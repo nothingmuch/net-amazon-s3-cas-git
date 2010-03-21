@@ -90,3 +90,21 @@ __PACKAGE__->meta->make_immutable;
 __PACKAGE__
 
 __END__
+
+=pod
+
+=head1 NAME
+
+Net::Amazon::S3::CAS::Git::BLOB - Get the data for 
+
+=head1 SYNOPSIS
+
+    my @blobs = $dir->entries->all;
+
+    say $blob->name, " = ", $blob->hash;
+
+    my $data = $blob->slurp;
+
+=head1 DESCRIPTION
+
+This is an implementation of L<Net::Amazon::S3::CAS::BLOB> for Git blobs.

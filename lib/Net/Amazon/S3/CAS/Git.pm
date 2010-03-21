@@ -13,22 +13,20 @@ __END__
 
 =pod
 
-=head1 REWRITEMAP SUPPORT
+=head1 NAME
 
-You can use the rewritemap output with this configuration:
+Net::Amazon::S3::CAS::Git - Use Git as a data source for
+L<Net::Amazon::S3::CAS>
 
-    RewriteEngine On
+=head1 SYNOPSIS
 
-    # this is used to escape key URIs
-    RewriteMap esc int:escape
+    % git to-s3 --treeish $tree_id --bucket $bucket_name
 
-    # this is the actual lookup
-    RewriteMap s3 txt:/path/to/rewritemap.txt
+=head1 DESCRIPTION
 
-    # only do the rewrite if there's a match in the map
-    RewriteCond ${s3:${esc:$1}} !=""
+This module implements a L<Net::Amazon::S3::CAS::Collection> that's based on
+Git tree objects, and also provides a C<git to-s3> command that can upload
+blobs easily.
 
-    # rewrite the URI to the S3 URI
-    # R redirects, noescape doesn't double escape the S3 URIs
-    RewriteRule ^/(.*)$ ${s3:${esc:$1}} [R,noescape]
-
+See L<Net::Amazon::S3::CAS::Git::Cmd> and
+L<Net::Amazon::S3::CAS::Git::Directory> for more details.
