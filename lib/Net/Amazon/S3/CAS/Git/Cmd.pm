@@ -264,7 +264,9 @@ sub run {
         local $, = " ";
         local $\ = "\n";
         foreach my $key (@keys) {
-            print $key, $uris->{$key};
+            my $apache_escaped = $key;
+            $apache_escaped =~ s/([ \t%?#])/'%' . lc(unpack("H*", $1))/ge;
+            print $apache_escaped, $uris->{$key};
         }
     }
 }
