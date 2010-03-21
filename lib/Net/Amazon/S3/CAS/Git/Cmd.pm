@@ -8,6 +8,8 @@ use MooseX::Types::Moose qw(Str ArrayRef);
 use Git;
 use Net::Amazon::S3;
 
+use Try::Tiny;
+
 use Net::Amazon::S3::CAS;
 use Net::Amazon::S3::CAS::Git::Directory;
 
@@ -150,7 +152,7 @@ has n_proc => (
 sub _build_n_proc {
     my $self = shift;
 
-    if ( eval { require Parallel::ForkManger; 1 } ) {
+    if ( try { require Parallel::ForkManager; 1 } ) {
         return 5;
     } else {
         return 1;
